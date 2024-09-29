@@ -1,2 +1,2 @@
-*dependencies:*
+**dependencies:**
 pip install ydata-profiling
