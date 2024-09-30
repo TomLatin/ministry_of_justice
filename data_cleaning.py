@@ -62,9 +62,13 @@ def detect_and_convert_dates(df: pd.DataFrame) -> (pd.DataFrame, list):
 def normalize_columns(df: pd.DataFrame, float_cols: list, date_cols: list) -> pd.DataFrame:
     scaler = MinMaxScaler()
 
+    # Replace NaN values with -1 for the specified columns
+    df[float_cols] = df[float_cols].fillna(-1)
+
     # Convert date columns to Unix timestamps (seconds since epoch)
     df[date_cols] = df[date_cols].apply(lambda col: col.astype('int64') // 10 ** 9)
 
+    # Normalize the columns
     df[float_cols + date_cols] = scaler.fit_transform(df[float_cols + date_cols])
     return df
 
