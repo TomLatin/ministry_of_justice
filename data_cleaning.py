@@ -23,23 +23,18 @@ def process_data(data_filepath: Path, data_file_encoding: str, data_key_column: 
     """
     df = load_data(data_filepath, data_file_encoding)
     df = df.drop_duplicates()
-    print(f"after drop dup {df.shape}")
     df = replace_values_using_mapping(df, data_key_column, mapping_filepath, mapping_file_encoding, mapping_key_column,
                                       mapping_value_column)
-    print(f"after replace_values_using_mapping {df.shape}")
     # Detect and convert date columns
     df, date_columns = detect_and_convert_dates(df)
-    print(f"after detect_and_convert_dates {df.shape}")
     # Identify columns
     categorical_cols = [col for col in df.select_dtypes(include=['object']).columns if col not in date_columns]
     float_cols = df.select_dtypes(include=['float64']).columns.tolist()
 
     # Normalize float and date columns
     df = normalize_columns(df, float_cols, date_columns)
-    print(f"after normalize_columns {df.shape}")
     # One-hot encode categorical columns
     df = one_hot_encode(df, categorical_cols)
-    print(f"after one_hot_encode {df.shape}")
     return df
 
 
@@ -53,12 +48,14 @@ def replace_values_using_mapping(df: pd.DataFrame, key_col: str, mapping_filepat
 
 def detect_and_convert_dates(df: pd.DataFrame) -> (pd.DataFrame, list):
     date_columns = []
+
     for col in df.select_dtypes(include=['object']).columns:
         try:
-            df[col] = pd.to_datetime(df[col])
+            df[col] = pd.to_datetime(df[col], dayfirst=True, errors='coerce')
             date_columns.append(col)
         except (ValueError, TypeError):
             pass
+
     return df, date_columns
 
 
