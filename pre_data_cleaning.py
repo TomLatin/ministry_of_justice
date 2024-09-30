@@ -1,13 +1,7 @@
-from pathlib import Path
-
 import pandas as pd
 from ydata_profiling import ProfileReport
 
-from common import DATA_FILEPATH, DATA_FILE_ENCODING
-
-
-def load_data(filepath: Path, encoding: str) -> pd.DataFrame:
-    return pd.read_csv(filepath_or_buffer=filepath, encoding=encoding)
+from common import DATA_FILEPATH, DATA_FILE_ENCODING, load_data
 
 
 def data_status(data: pd.DataFrame) -> None:
