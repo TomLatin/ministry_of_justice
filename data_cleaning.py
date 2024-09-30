@@ -48,11 +48,22 @@ def replace_values_using_mapping(df: pd.DataFrame, key_col: str, mapping_filepat
 
 def detect_and_convert_dates(df: pd.DataFrame) -> (pd.DataFrame, list):
     date_columns = []
+    valid_year_range = (1900, 2100)  # Adjust this range based on your requirements
 
     for col in df.select_dtypes(include=['object']).columns:
         try:
-            df[col] = pd.to_datetime(df[col], dayfirst=True, errors='coerce')
-            date_columns.append(col)
+            # Convert to datetime
+            converted = pd.to_datetime(df[col], dayfirst=True, errors='coerce')
+
+            # Check if all converted values are NaT (meaning no valid dates)
+            if converted.notna().any():
+                # Filter out NaT values and check for valid year range
+                valid_dates = converted[(converted.notna()) & (converted.dt.year >= valid_year_range[0]) & (
+                            converted.dt.year <= valid_year_range[1])]
+
+                if not valid_dates.empty:
+                    df[col] = converted
+                    date_columns.append(col)
         except (ValueError, TypeError):
             pass
 
@@ -74,7 +85,8 @@ def normalize_columns(df: pd.DataFrame, float_cols: list, date_cols: list) -> pd
 
 
 def one_hot_encode(df: pd.DataFrame, categorical_cols: list) -> pd.DataFrame:
-    encoder = OneHotEncoder(sparse_output=False, drop='first')
+    # encoder = OneHotEncoder(sparse_output=False, drop='first')
+    encoder = OneHotEncoder(sparse_output=False)
     encoded_cols = encoder.fit_transform(df[categorical_cols])
     encoded_col_names = encoder.get_feature_names_out(categorical_cols)
 
