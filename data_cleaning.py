@@ -1,14 +1,8 @@
 from pathlib import Path
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
-from common import DATA_FILEPATH, DATA_FILE_ENCODING, load_data
-
-# Constants
-MAPPING_FILEPATH = Path("test_data_engineer_aggregated_case_result.csv")
-MAPPING_FILE_ENCODING = 'ISO-8859-8'
-MAPPING_KEY_COLUMN = 'tnufa_endreasonName'
-MAPPING_VALUE_COLUMN = 'result_type'
-DATA_KEY_COLUMN = "tnufa_endreasonName"
+from common import DATA_FILEPATH, DATA_FILE_ENCODING, load_data, DATA_KEY_COLUMN, MAPPING_FILEPATH, \
+    MAPPING_VALUE_COLUMN, MAPPING_KEY_COLUMN, MAPPING_FILE_ENCODING
 
 
 def process_data(data_filepath: Path, data_file_encoding: str, data_key_column: str, mapping_filepath: Path,
@@ -27,12 +21,14 @@ def process_data(data_filepath: Path, data_file_encoding: str, data_key_column: 
                                       mapping_value_column)
     # Detect and convert date columns
     df, date_columns = detect_and_convert_dates(df)
+
     # Identify columns
     categorical_cols = [col for col in df.select_dtypes(include=['object']).columns if col not in date_columns]
     float_cols = df.select_dtypes(include=['float64']).columns.tolist()
 
     # Normalize float and date columns
     df = normalize_columns(df, float_cols, date_columns)
+
     # One-hot encode categorical columns
     df = one_hot_encode(df, categorical_cols)
     return df
@@ -59,7 +55,7 @@ def detect_and_convert_dates(df: pd.DataFrame) -> (pd.DataFrame, list):
             if converted.notna().any():
                 # Filter out NaT values and check for valid year range
                 valid_dates = converted[(converted.notna()) & (converted.dt.year >= valid_year_range[0]) & (
-                            converted.dt.year <= valid_year_range[1])]
+                        converted.dt.year <= valid_year_range[1])]
 
                 if not valid_dates.empty:
                     df[col] = converted

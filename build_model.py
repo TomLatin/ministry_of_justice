@@ -1,23 +1,15 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score
-from data_cleaning import process_data, DATA_FILEPATH, DATA_FILE_ENCODING, MAPPING_FILEPATH, MAPPING_FILE_ENCODING, \
-    DATA_KEY_COLUMN, MAPPING_KEY_COLUMN, MAPPING_VALUE_COLUMN
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import StandardScaler
 
-def build_and_train_model(df: pd.DataFrame, target_columns: list):
-    """
-    Build, train, and evaluate an MLPClassifier model for multiple target columns.
+from common import DATA_KEY_COLUMN, DATA_FILEPATH, DATA_FILE_ENCODING, MAPPING_FILEPATH, MAPPING_VALUE_COLUMN, \
+    MAPPING_KEY_COLUMN, MAPPING_FILE_ENCODING, get_logging
+from data_cleaning import process_data
 
-    Parameters:
-    - df: The processed DataFrame with features and target columns.
-    - target_columns: A list of column names that contain the target labels.
 
-    Returns:
-    - model: The trained MLPClassifier model.
-    - score: The accuracy score of the model on the test set.
-    """
+def build_and_train_model(df: pd.DataFrame, target_columns: list) -> [MLPClassifier, dict]:
     # Check for missing values
     if df.isnull().values.any():
         print("Warning: Data contains missing values. Consider handling them before training.")
@@ -48,18 +40,19 @@ def build_and_train_model(df: pd.DataFrame, target_columns: list):
 
 
 if __name__ == '__main__':
+    logger = get_logging()
     try:
         # Process the data using the cleaning function from the `data_cleaning.py`
         df_processed = process_data(DATA_FILEPATH, DATA_FILE_ENCODING, DATA_KEY_COLUMN, MAPPING_FILEPATH,
                                     MAPPING_FILE_ENCODING, MAPPING_KEY_COLUMN, MAPPING_VALUE_COLUMN)
 
         # Identify target columns containing the substring 'tnufa_endreasonName'
-        target_columns = [col for col in df_processed.columns if 'tnufa_endreasonName' in col]
+        target_columns = [col for col in df_processed.columns if DATA_KEY_COLUMN in col]
 
         # Build and train the model
         model, test_scores = build_and_train_model(df_processed, target_columns)
 
         for target, score in test_scores.items():
-            print(f"Model accuracy on the test set for {target}: {score:.4f}")
+            logger.info(f"Model accuracy on the test set for {target}: {score:.4f}")
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logger.info(f"An error occurred: {e}")
